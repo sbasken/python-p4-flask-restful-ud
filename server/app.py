@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from flask import Flask, request, make_response
+from flask import Flask, jsonify, request, make_response
 from flask_migrate import Migrate
 from flask_restful import Api, Resource
 
@@ -79,6 +79,48 @@ class NewsletterByID(Resource):
         )
 
         return response
+    
+    def patch(self, id):
+        newsletter = Newsletter.query.filter(Newsletter.id == id).first()
+        data = request.get_json()
+        for attr in data:
+            setattr(newsletter, attr, data[attr])
+
+        db.session.add(newsletter)
+        db.session.commit()
+
+        return make_response(jsonify(newsletter.to_dict()), 200)
+    
+    # def patch(self, id):
+    #     record = Newsletter.query.filter(Newsletter.id == id).first()
+    #     for attr in request.form:
+    #         setattr(record, attr, request.form[attr])
+    #     db.session.add(record)
+    #     db.session.commit()
+    #     response_dict = record.to_dict()
+    #     response = make_response(
+    #         response_dict,
+    #         200
+    #     )
+    #     return response
+
+    def delete(self, id):
+        newsletter = Newsletter.query.filter(Newsletter.id == id).first()
+        db.delete(newsletter)
+        db.commit()
+
+        return make_response({"message":"Newsletter successfully deleted!"}, 200)
+    
+    # def delete(self, id):
+    #     record = Newsletter.query.filter(Newsletter.id == id).first()
+    #     db.session.delete(record)
+    #     db.session.commit()
+    #     response_dict = {"message": "record successfully deleted"}
+    #     response = make_response(
+    #         response_dict,
+    #         200
+    #     )
+    #     return response
 
 api.add_resource(NewsletterByID, '/newsletters/<int:id>')
 
